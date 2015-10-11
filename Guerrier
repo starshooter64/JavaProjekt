@@ -1,0 +1,15 @@
+import java.util.*; 
+
+public class Guerrier extends persoRPG
+{
+	public Guerrier()
+	{
+		super();
+
+	}
+	public Guerrier(int a,int b, int c, String d)
+	{
+		super(a,b,c,d);
+	}
+
+}
