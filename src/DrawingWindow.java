@@ -13,6 +13,8 @@ import java.io.*;
 import java.nio.FloatBuffer;
 import static org.lwjgl.opengl.GL11.*;
 import java.util.*;
+import java.util.function.*;
+import java.lang.Math;
 
 public class DrawingWindow {
 	private int width;
@@ -22,7 +24,7 @@ public class DrawingWindow {
 	private int tileWidth = 50;
 	private int tileHeight = 50;
 	private float zoom = 1;
-	private float offsetX = -1.5f;
+	private float offsetX = 0;
 	private float offsetY = 0;
 
 	private float transitionZoom = 0;
@@ -110,24 +112,24 @@ public class DrawingWindow {
 
 			update();
 
-			if(transitionZoom!=0)
-				if(transitionZoom>0){
-					transitionZoom -= transitionZoomSpeed;
-					zoom += transitionZoomSpeed;
-				}else
-					transitionZoom = 0;
-			if(transitionX!=0)
-				if(transitionX>0){
-					transitionX -= transitionXSpeed;
-					offsetX += transitionXSpeed;
-				}else
-					transitionX = 0;
-			if(transitionY!=0)
-				if(transitionY>0){
-					transitionY -= transitionYSpeed;
-					offsetY += transitionYSpeed;
-				}else
-					transitionY = 0;
+			if(transitionX!=0){
+				float way = (transitionX>0) ? 1 : -1;
+				transitionX -= way*transitionXSpeed;
+				transitionX = (way*transitionX > 0) ? transitionX : 0;
+				offsetX += way*transitionXSpeed;
+			}
+			if(transitionY!=0){
+				float way = (transitionY>0) ? 1 : -1;
+				transitionY -= way*transitionYSpeed;
+				transitionY = (way*transitionY > 0) ? transitionY : 0;
+				offsetY += way*transitionYSpeed;
+			}
+			if(transitionZoom!=0){
+				float way = (transitionZoom>0) ? 1 : -1;
+				transitionZoom -= way*transitionZoomSpeed;
+				transitionZoom = (way*transitionZoom > 0) ? transitionZoom : 0;
+				zoom += way*transitionZoomSpeed;
+			}
 		}
 		close();
 		System.exit(0);
@@ -164,19 +166,54 @@ public class DrawingWindow {
 	}
 
 	private void drawRect(float x, float y, float w, float h){
+		drawArea(x, y, x+w, y, x+w, y+h, x, y+h);
+	}
+
+	private void drawRect(float x, float y, float w, float h, double rotation){
+		if(rotation==0)
+			drawRect(x, y, w, h);
+		else{
+			float middleX = x+w/2;
+			float middleY = y+h/2;
+
+			float decX = x - w/2;
+			float decY = y + w/2;
+
+			x = w/2;
+			y = -h/2;
+
+			float cos = (float) Math.cos(rotation);
+			float sin = (float) Math.sin(rotation);
+
+			BiFunction<Float, Float, Float> GetRX = (X, Y) -> X * cos - Y * sin;
+			BiFunction<Float, Float, Float> GetRY = (X, Y) -> X * sin + Y * cos;
+
+			drawArea(
+					decX + GetRX.apply(x, y), 		decY + GetRY.apply(x, y),
+					decX + GetRX.apply(x+w, y), 	decY + GetRY.apply(x+w, y),
+					decX + GetRX.apply(x+w, y+h),	decY + GetRY.apply(x+w, y+h),
+					decX + GetRX.apply(x, y+h), 	decY + GetRY.apply(x, y+h)
+				);
+		}
+	}
+
+	private void drawArea(
+				float ax, float ay, float bx, float by,
+				float cx, float cy, float dx, float dy
+			){
 		glBegin(GL_QUADS);
 
-		glTexCoord2f(0, 0);
-		glVertex2d(x, y);
+		glTexCoord2f(0,0);
+		glVertex2d(ax, ay);
 
 		glTexCoord2f(1,0);
-		glVertex2d(x+w, y);
+		glVertex2d(bx, by);
 
 		glTexCoord2f(1,1);
-		glVertex2d(x+w, y+h);
+		glVertex2d(cx, cy);
 
 		glTexCoord2f(0,1);
-		glVertex2d(x, y+h);
+		glVertex2d(dx, dy);
 
 		glEnd();
 	}
@@ -186,13 +223,16 @@ public class DrawingWindow {
 	}
 
 	public void drawOnGrid(float x, float y, int textureId){
+		drawOnGrid(x, y, textureId, 0);
+	}
+	public void drawOnGrid(float x, float y, int textureId, double rotation){
 		glBindTexture(GL_TEXTURE_2D, textureId);
 
 		drawRect(
 				(offsetX + x) * TileWidth(),
 				(offsetY + y) * TileHeight(),
 				TileWidth(),
-				TileHeight()
+				TileHeight(), rotation
 			);
 	}
 
@@ -224,7 +264,7 @@ public class DrawingWindow {
 		transitionZoom = relativeLevel;
 	}
 	public void zoomSmoothTo(float absoluteLevel){
-		zoom(absoluteLevel - zoom);
+		zoomSmooth(absoluteLevel - zoom);
 	}
 
 	public void close(){
