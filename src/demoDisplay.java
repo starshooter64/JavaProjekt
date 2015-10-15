@@ -28,11 +28,11 @@ public class demoDisplay implements IGame {
 		}
 		// Voit si une touche vient d'être enfoncée
 		if(window.keyJustPressed(Keyboard.KEY_Z)){
-			window.zoom(0.4f);// Zoom d'un coup
+			window.zoom(0.1f);// Zoom d'un coup
 		}
 		// Voit si une touche vient d'être relâchée
 		if(window.keyJustReleased(Keyboard.KEY_D)){
-			window.zoomSmooth(-0.4f);// Dézoom avec transition
+			window.zoomSmooth(-0.1f);// Dézoom avec transition
 		}
 		/* Autre méthodes 
 			scroll(float X, float Y)			scroll "d'un coup" relativement au scroll actuel
