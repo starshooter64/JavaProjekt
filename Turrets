@@ -1,1 +1,20 @@
+import java.util.*
 
+public class Turrets extends unit 
+{
+	private int range,damage;
+	public Turrets()
+	{
+		super();
+	}
+	public Turrets(int a,int b, int c)
+	{
+		vie = a;
+		range = b;
+		damage = c;
+	}
+	public void attack(unit a)
+	{
+		a
+	}
+}
