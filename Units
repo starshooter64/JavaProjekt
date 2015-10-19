@@ -1,1 +1,14 @@
+import java.util* 
 
+public class Unit
+{
+	private int vie;
+	private Image image;
+	public unit(){ vie = 0;}
+	public unit(String c){// a faire plus tard}
+	public String toString()
+	{
+		System.out.println("vie : "+vie + " "+"Image associe : "+ image);
+	}
+
+}
